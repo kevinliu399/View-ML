@@ -1,3 +1,4 @@
+import logging
 import joblib
 import numpy as np
 import pandas as pd
@@ -12,7 +13,7 @@ import io
 class AAPL_LSTM_MODEL(APIView):
     def __init__(self):
         super().__init__()
-        loaded_data = joblib.load('./model/AAPL_lstm_model.pkl')
+        loaded_data = joblib.load('./models/AAPL_lstm_model.pkl')
         self.model = loaded_data['model']
         self.scaler = loaded_data['scaler']
         self.sequence_length = loaded_data['sequence_length']
@@ -41,7 +42,7 @@ class AAPL_LSTM_MODEL(APIView):
 class Housing_Prediction(APIView):
     def __init__(self):
         super().__init__()
-        loaded_data = joblib.load('./model/housing_prediction.pkl')
+        loaded_data = joblib.load('./models/housing_prediction.pkl')
         self.model = loaded_data['model']
         self.feature_names = loaded_data['feature_names']
         self.ocean_proximity_categories = loaded_data['ocean_proximity_categories']
@@ -73,28 +74,42 @@ class Housing_Prediction(APIView):
 class MNIST(APIView):
     def __init__(self):
         super().__init__()
-        self.model = joblib.load('./model/MNIST.pkl')
+        self.model = joblib.load('./models/MNIST.pkl')
 
     def preprocess_data(self, data):
-        # Assuming data is a list of 784 pixel values (28x28 image flattened)
+        # Ensure data is a list of 784 pixel values (28x28 image flattened)
+        if len(data) != 784:
+            raise ValueError("Input data must be a list of 784 elements")
         image = np.array(data, dtype=np.float32).reshape(1, 28, 28, 1)
         image = image / 255.0  # Normalize pixel values
         return image
 
     def post(self, request):
         try:
-            data = request.data['input']
+            data = request.data.get('input', None)
+            if data is None:
+                raise ValueError("No input data provided")
+
+            logging.info(f"Received data: {data[:10]}...") 
+
             preprocessed_data = self.preprocess_data(data)
+            logging.info(f"Preprocessed data shape: {preprocessed_data.shape}")
+
             prediction = self.model.predict(preprocessed_data)
             predicted_class = np.argmax(prediction)
+
             return Response({'prediction': int(predicted_class)}, status=status.HTTP_200_OK)
+        except ValueError as ve:
+            logging.error(f"ValueError: {str(ve)}")
+            return Response({'error': str(ve)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
+            logging.error(f"General Exception: {str(e)}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class Temperature_Model(APIView):
     def __init__(self):
         super().__init__()
-        loaded_data = joblib.load('./model/temperature_model.pkl')
+        loaded_data = joblib.load('./models/temperature_model.pkl')
         self.model = loaded_data['model']
         self.scaler = loaded_data['scaler']
         self.feature_names = loaded_data['feature_names']
@@ -146,7 +161,7 @@ class Sentiment_classifier(APIView):
         super().__init__()
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = ConvNet().to(self.device)
-        self.model.load_state_dict(torch.load('./model/sentiment_classifier.pth', map_location=self.device))
+        self.model.load_state_dict(torch.load('./models/sentiment_classifier.pth', map_location=self.device))
         self.model.eval()
         self.transform = transforms.Compose([
             transforms.Resize((256, 256)),
