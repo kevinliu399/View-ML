@@ -10,7 +10,7 @@ function MyDropzone() {
 
     const onDrop = useCallback(acceptedFiles => {
         const file = acceptedFiles[0]
-        if (file.type === "image/jpeg" || file.type === "image/png" || file.type === "image/jpg" || file.type === "image/png" || file.type === "image/bmp") {
+        if (file.type === "image/jpeg" || file.type === "image/png" || file.type === "image/jpg" || file.type === "image/bmp") {
             setImage(URL.createObjectURL(file))
             setError(null)
             predictSentiment(file)
@@ -22,7 +22,7 @@ function MyDropzone() {
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
         onDrop,
-        accept: {'image/jpeg': [], 'image/png': []}
+        accept: {'image/jpeg': [], 'image/png': [], 'image/jpg': [], 'image/bmp': []}
     })
 
     const predictSentiment = async (file) => {
@@ -30,8 +30,7 @@ function MyDropzone() {
         formData.append('image', file)
     
         try {
-            // Replace 'http://localhost:8000' with your Django server's address
-            const response = await axios.post('http://localhost:8000/predict/sentiment/', formData, {
+            const response = await axios.post('http://localhost:8000/api/predict/sentiment/', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
@@ -39,6 +38,15 @@ function MyDropzone() {
             setPrediction(response.data)
         } catch (error) {
             console.error("Error predicting sentiment:", error)
+            if (error.response) {
+                console.error("Data:", error.response.data);
+                console.error("Status:", error.response.status);
+                console.error("Headers:", error.response.headers);
+            } else if (error.request) {
+                console.error("Request:", error.request);
+            } else {
+                console.error("Error:", error.message);
+            }
             setError("Error predicting sentiment. Please try again.")
         }
     }
@@ -56,16 +64,18 @@ function MyDropzone() {
                 </div>
                 {error && <p className="error">{error}</p>}
                 {prediction && (
-                <div>
-                    <h2>Prediction:</h2>
-                    <p>{prediction}</p>
+                <div className="p-4">
+                    <h2 className="font-medium text-xl pb-2">Prediction:</h2>
+                    <p>Sentiment: {prediction.prediction}</p>
+                    <p>Confidence: {prediction.confidence.toFixed(2)}</p>
                 </div>
                 )}
             </div>
             
+                
             {image && (
                 <div>
-                    <img src={image} alt="Uploaded" style={{maxWidth: '300px'}} />
+                    <img src={image} alt="Uploaded" style={{maxWidth: '300px', maxHeight: '300px'}} />
                 </div>
             )}
         </div>
