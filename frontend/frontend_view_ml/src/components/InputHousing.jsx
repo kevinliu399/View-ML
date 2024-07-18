@@ -146,7 +146,7 @@ export default function CaliforniaModelInputs() {
                 </div>
 
                 <div className="flex flex-col mt-5">
-                    <button type="submit" className="mt-2 px-3 py-2 text-md bg-red-50 rounded-full hover:bg-red-200 transition-all shadow-sm">Submit</button>
+                    <button type="submit" className="mt-4 px-4 py-2 bg-red-50 hover:bg-red-200 hover:shadow-md transition-all rounded-lg shadow-sm">Submit</button>
                     <div className="mt-1">
                         <h3 className="flex flex-row">Predicted Median House Value:<p className="font-semibold px-1 text-red-400 underline transition-all cursor-default">{prediction}</p>$</h3>
                     </div>

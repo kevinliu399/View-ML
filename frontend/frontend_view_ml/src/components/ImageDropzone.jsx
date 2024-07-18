@@ -20,15 +20,15 @@ function MyDropzone() {
         }
     }, [])
 
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
-        accept: {'image/jpeg': [], 'image/png': [], 'image/jpg': [], 'image/bmp': []}
+        accept: { 'image/jpeg': [], 'image/png': [], 'image/jpg': [], 'image/bmp': [] }
     })
 
     const predictSentiment = async (file) => {
         const formData = new FormData()
         formData.append('image', file)
-    
+
         try {
             const response = await axios.post('http://localhost:8000/api/predict/sentiment/', formData, {
                 headers: {
@@ -63,21 +63,23 @@ function MyDropzone() {
                     }
                 </div>
                 {error && <p className="error">{error}</p>}
-                {prediction && (
+                {image && (
+                        <div className="my-4 flex items-center justify-center w-full h-1/2">
+                            <img src={image} alt="Uploaded" style={{ maxWidth: '300px', maxHeight: '300px' }} className="border-4 border-red-200 rounded-md shadow-lg" />
+                        </div>
+                    )}
                 <div className="p-4">
                     <h2 className="font-medium text-xl pb-2">Prediction:</h2>
-                    <p>Sentiment: {prediction.prediction}</p>
-                    <p>Confidence: {prediction.confidence.toFixed(2)}</p>
+                    <div className="flex flex-col">
+                        <p>
+                            {prediction ? `Sentiment: ${prediction.prediction}` : 'Sentiment: '}
+                        </p>
+                        <p>
+                            {prediction ? `Confidence: ${prediction.confidence.toFixed(2)}` : 'Confidence: '}
+                        </p>
+                    </div>
                 </div>
-                )}
             </div>
-            
-                
-            {image && (
-                <div>
-                    <img src={image} alt="Uploaded" style={{maxWidth: '300px', maxHeight: '300px'}} />
-                </div>
-            )}
         </div>
     )
 }
